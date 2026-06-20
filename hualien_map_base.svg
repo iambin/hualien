@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1500" role="img" aria-labelledby="title desc">
+  <title id="title">花蓮山線海線示意地圖</title>
+  <desc id="desc">以圖檔方式呈現花蓮縣輪廓、台9線山線、台11線海線與主要景點位置。</desc>
+  <defs>
+    <linearGradient id="sea" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#d9f0ff"/>
+      <stop offset="1" stop-color="#a8d8f0"/>
+    </linearGradient>
+    <linearGradient id="land" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f7f0da"/>
+      <stop offset="1" stop-color="#e6f0d0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1f2933" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1500" fill="url(#sea)"/>
+  <path d="M0 0H900V1500H0Z" fill="#e8f5e3" opacity=".18"/>
+  <path d="M250 25 C335 38 430 34 520 52 C610 70 685 115 720 200 C755 285 725 360 706 438 C685 524 690 610 650 700 C612 786 620 875 590 960 C555 1058 555 1120 585 1205 C615 1295 578 1385 505 1458 C435 1517 350 1478 295 1390 C250 1320 205 1255 178 1166 C145 1058 155 950 130 850 C105 760 80 675 105 586 C132 492 155 405 150 315 C146 220 176 112 250 25Z" fill="url(#land)" stroke="#8aa07b" stroke-width="4" filter="url(#shadow)"/>
+  <path d="M160 80 C235 185 245 300 215 425 C190 535 195 650 225 760 C260 895 235 1045 290 1195 C325 1288 345 1368 415 1465" fill="none" stroke="#91b36f" stroke-width="54" stroke-linecap="round" opacity=".32"/>
+  <path d="M265 48 C350 210 318 395 350 565 C385 755 435 910 430 1080 C425 1240 400 1360 378 1448" fill="none" stroke="#d8eac8" stroke-width="70" stroke-linecap="round" opacity=".9"/>
+  <path d="M370 120 C348 232 340 338 332 448 C324 570 344 664 368 772 C398 902 425 1025 420 1150 C415 1270 405 1365 390 1450" fill="none" stroke="#2f7d32" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M370 120 C348 232 340 338 332 448 C324 570 344 664 368 772 C398 902 425 1025 420 1150 C415 1270 405 1365 390 1450" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+  <path d="M620 118 C645 245 640 360 622 480 C608 592 610 690 592 790 C575 890 585 970 570 1065 C555 1165 560 1260 548 1365" fill="none" stroke="#0877b9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M620 118 C645 245 640 360 622 480 C608 592 610 690 592 790 C575 890 585 970 570 1065 C555 1165 560 1260 548 1365" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+  <path d="M706 438 C675 535 690 620 650 700 C612 786 620 875 590 960 C555 1058 555 1120 585 1205 C615 1295 578 1385 505 1458" fill="none" stroke="#5aa9d6" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+  <text x="40" y="62" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="30" font-weight="700" fill="#1f2933">花蓮縣山線、海線景點示意地圖</text>
+  <text x="43" y="102" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="18" fill="#52606d">綠線：台9線花東縱谷公路｜藍線：台11線花東海岸公路</text>
+  <text x="680" y="720" transform="rotate(90 680 720)" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="28" font-weight="700" fill="#327da8" opacity=".55">太平洋</text>
+  <text x="205" y="745" transform="rotate(78 205 745)" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="24" font-weight="700" fill="#668b45" opacity=".6">中央山脈</text>
+  <text x="312" y="95" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="18" font-weight="700" fill="#2f7d32">台9 山線</text>
+  <text x="650" y="128" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="18" font-weight="700" fill="#0877b9">台11 海線</text>
+  <g font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="16" fill="#455a64" opacity=".9">
+    <text x="430" y="155">花蓮市</text>
+    <text x="375" y="480">壽豐</text>
+    <text x="392" y="685">鳳林</text>
+    <text x="425" y="825">光復</text>
+    <text x="458" y="1018">瑞穗</text>
+    <text x="450" y="1198">玉里</text>
+    <text x="422" y="1400">富里</text>
+    <text x="625" y="690">豐濱</text>
+  </g>
+</svg>
