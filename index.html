@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>花蓮山線海線景點地圖</title>
+<style>
+:root{--mountain:#4ade80;--coast:#38bdf8;--ink:#e2e8f0;--muted:#94a3b8;--line:#334155;--bg:#0f172a;--panel:#1e293b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;color:var(--ink);background:var(--bg)}
+.app{display:grid;grid-template-columns:minmax(340px,400px) minmax(0,1fr);min-height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:22px 20px 28px;overflow-y:auto;max-height:100vh;position:sticky;top:0}
+h1{font-size:22px;line-height:1.3;margin-bottom:6px}
+.sub{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;color:var(--ink);text-decoration:none;font-size:13px;cursor:pointer}
+.btn:hover{border-color:#475569;background:#0f172a}
+.btn.active{background:#e2e8f0;color:#0f172a;border-color:#e2e8f0}
+.legend{display:grid;gap:6px;margin-bottom:16px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:13px}
+.legend-item{display:flex;align-items:center;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.mountain{background:var(--mountain)}.dot.coast{background:var(--coast)}
+.section-title{font-size:15px;font-weight:700;margin:18px 0 6px;display:flex;align-items:center;gap:6px}
+.route-list{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.place{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--panel);cursor:pointer;transition:border-color .15s,transform .15s}
+.place:hover,.place.active{border-color:#38bdf8;transform:translateY(-1px)}
+.place b{display:flex;font-size:13px}
+.place span{display:block;font-size:12px;line-height:1.5;margin-top:2px}
+.place.mountain b{color:var(--mountain)}
+.place.mountain span{color:var(--mountain)}
+.place.coast b{color:var(--coast)}
+.place.coast span{color:var(--coast)}
+.stage{padding:16px;overflow:auto}
+.map-frame{position:relative;width:min(100%,960px);margin:0 auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.5);overflow:hidden}
+.map-wrap{position:relative;width:100%;aspect-ratio:900/1500}
+.map-wrap img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.marker{position:absolute;left:calc(var(--x)*1%);top:calc(var(--y)*1%);transform:translate(var(--tx,-50%),-50%);min-height:26px;max-width:170px;border:2px solid #0f172a;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.6);cursor:pointer;display:flex;align-items:center;gap:4px;padding:2px 7px 2px 2px;color:#fff;font-size:11px;font-weight:700;line-height:1.15;text-align:left;z-index:3;white-space:nowrap}
+.marker.mountain{background:rgba(47,125,50,.92)}.marker.coast{background:rgba(8,119,185,.93)}
+.marker.left{flex-direction:row-reverse;padding:2px 2px 2px 7px;text-align:right;--tx:-100%}
+.marker.right{--tx:0%}
+.marker .num{flex:0 0 auto;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#0f172a;font-size:10px;line-height:1}
+.marker.mountain .num{color:var(--mountain)}.marker.coast .num{color:var(--coast)}
+.marker .label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.marker.active{z-index:6;outline:3px solid rgba(255,255,255,.78);transform:translate(var(--tx,-50%),-50%) scale(1.1)}
+.callout{position:absolute;left:50%;top:20px;transform:translateX(-50%);width:min(400px,calc(100%-24px));background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 44px 14px 14px;box-shadow:0 12px 26px rgba(0,0,0,.6);z-index:10;display:none}
+.callout.show{display:block}
+.callout-title{font-weight:800;font-size:15px;margin-bottom:4px}
+.tag{display:inline-block;margin-bottom:6px;padding:2px 7px;color:#fff;border-radius:999px;font-size:11px}
+.tag.mountain{background:var(--mountain)}.tag.coast{background:var(--coast)}
+.callout p{color:var(--muted);font-size:12px;line-height:1.6}
+.callout a{display:inline-block;margin-top:6px;color:var(--coast);font-size:12px}
+.callout-close{position:absolute;top:8px;right:8px;width:28px;height:28px;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--muted);cursor:pointer;font-size:18px;line-height:1;display:grid;place-items:center}
+.callout-close:hover{border-color:#475569;color:var(--ink)}
+.note{margin-top:16px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.5}
+.merge-group{margin-top:6px;padding:6px 8px;background:#0f172a;border-radius:6px;border:1px dashed var(--line)}
+.merge-group .merge-title{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.merge-group .merge-item{font-size:12px;padding:2px 0;color:var(--ink)}
+@media(max-width:920px){.app{grid-template-columns:1fr}aside{max-height:none;border-right:0;border-bottom:1px solid var(--line);position:static}.stage{padding:10px}.marker{max-width:130px;font-size:10px}}
+</style>
+</head>
+<body>
+<main class="app">
+<aside>
+<h1>花蓮山線、海線景點地圖</h1>
+<p class="sub">暑假5日遊(8/8 ~ 8/12)花蓮縱谷線(台9線)與海岸線(台11線)景點簡介。</p>
+<div class="actions">
+</div>
+<div class="legend">
+<div class="legend-item"><span class="dot mountain"></span>山線：台9線花東縱谷公路</div>
+<div class="legend-item"><span class="dot coast"></span>海線：台11線花東海岸公路</div>
+</div>
+<h2 class="section-title"><span class="dot mountain"></span>山線 台9線 北到南</h2>
+<ol class="route-list" id="mountainList"></ol>
+<h2 class="section-title"><span class="dot coast"></span>海線 台11線 北到南</h2>
+<ol class="route-list" id="coastList"></ol>
+<p class="note">此圖為旅遊規劃用示意地圖，標記位置為約略相對位置；實際導航請以現場告示或導航 App 為準。</p>
+</aside>
+<section class="stage">
+<div class="map-frame">
+<div class="map-wrap" id="mapWrap">
+<img id="mapImg" src="" alt="花蓮山線海線示意地圖">
+<div class="callout" id="callout"></div>
+</div>
+</div>
+</section>
+</main>
+<script>
+// === 山線景點 (台9線) — 所有景點座標精確貼合綠色路線 ===
+// 綠色路線 SVG path: M370 120 C348 232 340 338 332 448 C324 570 344 664 368 772 C398 902 425 1025 420 1150 C415 1270 405 1365 390 1450
+// 座標轉換: x% = svg_x/900*100,  y% = svg_y/1500*100
+const mountainPlaces = [
+{name:"吉安慶修院",short:"慶修院",x:41.1,y:8,desc:"花蓮市近郊日式寺院，適合當山線第一站。",url:"https://bunnyann.tw/bunnyann156/"},
+{name:"鯉魚潭",short:"鯉魚潭",x:39.5,y:14,desc:"環潭、踩船、咖啡與湖景，是花蓮山線經典點。",recommended:true,url:"https://bunnyann.tw/carp/"},
+{name:"池南國家森林遊樂區",short:"池南森林",x:39,y:20,desc:"鯉魚潭旁的森林與林業展示，可搭配鯉魚潭同行。",url:"https://gofunit.com/%E6%B1%A0%E5%8D%97%E5%9C%8B%E5%AE%B6%E6%A3%AE%E6%9E%97%E9%81%8A%E6%A8%82%E5%8D%80/"},
+{name:"立川漁場",short:"立川漁場",x:37,y:26,desc:"黃金蜆體驗與餐食補給，親子旅行可排。",url:"https://bobbytravel.tw/li-chuan-aquafarm/"},
+{name:"星巴克理想大地門市",short:"星巴克理想",x:37.9,y:32,desc:"位於壽豐理想大地一帶，山線途中適合停下來喝咖啡、休息拍照。",recommended:true,url:"https://bobowin.blog/starbucks-lake/"},
+{name:"林田山林業文化園區",short:"林田山",x:37,y:39,desc:"舊林場、木造建築與鐵道記憶，山線很推薦。",url:"https://decolifetw.com/morisaka/"},
+{name:"花蓮觀光糖廠",short:"光復糖廠",x:40.0,y:45,desc:"花蓮觀光糖廠（光復糖廠）位於花蓮縣光復鄉，免門票即可入園。園區內最受歡迎的是超過30種口味的古早味冰品（如紅豆鮮奶冰淇淋），還可體驗餵魚、騎單車、參觀日式木構造建築群，是極佳的親子休憩與懷舊景點。",recommended:true,url:"https://bunnyann.tw/blog-post_1494/"},
+{name:"馬太鞍濕地",short:"馬太鞍",x:41.2,y:51,desc:"馬太鞍溼地是一處綠意盎然的自然樂園，由南向北蜿蜒穿過馬太鞍溼地的芙登溪，滋養了這片沼澤的豐美生態。沿著涓涓小溪騎乘單車，任何一條水溝，都可以發現魚、蝦、貝、螺的蹤跡。",recommended:true,url:"https://www.youtube.com/watch?v=eNHXfuCgY-4"},
+{name:"椰子林溫泉飯店",short:"椰子林溫泉",x:42.0,y:57,desc:"本溫泉是全台灣唯一含鐵質的碳酸氫鹽泉溫泉區，泉水湧出於紅葉溪下游，虎頭山麓，含鐵質的溫泉水遇到空氣後，氧化的溫泉水色呈淡黃濁色，味則略帶鹹味，由於含有豊富的礦物質及鐵。",recommended:true,url:"https://cocoforest.970bnb.net/"},
+{name:"瑞穗牧場",short:"瑞穗牧場",x:45,y:63,desc:"依靠中央山脈的瑞穗牧場，以純淨的水質種植出鮮美的牧草，讓園區中的乳牛生產優質的鮮奶，製造出各式各樣的鮮奶製品，炸得金黃酥脆的鮮奶饅頭、綿密紮實的乳酪。",recommended:true,url:"https://bunnyann.tw/ruisuicattle/"},
+{name:"掃叭石柱",short:"掃叭石柱",x:46,y:69,desc:"石柱矗立在地面，那就是Satokoay（舞鶴）遺址，也被稱做掃叭石柱。舞鶴遺址至今已有3千多年的歷史，屬於史前文化的遺跡，有著許多當地阿美族與撒奇萊。",url:"https://v8876629.com.tw/4656.html"},
+{name:"北回歸線標誌公園",short:"北回歸線",x:45.3,y:75,desc:"北回歸線標誌公園位在瑞穗舞鶴台地，白色日晷的造型，是旅客經過舞鶴台地時必拍照的景點，公園內周遭設有戶外停車場、巨大茶壺造型的裝置藝術、廁所。",url:"https://fullfenblog.tw/tropic-of-cancer-marker-park/"},
+{name:"赤科山",short:"赤科山",x:45.8,y:81,desc:"位於玉里鎮海拔約900公尺處，以每年8月至9月的「赤科三景」與黃金金針花海聞名。",recommended:true,url:"https://www.youtube.com/watch?v=nwzrxK_CpO0"},
+{name:"六十石山",short:"六十石山",x:45.6,y:87,desc:"六十石山位於花蓮縣富里鄉海拔約800公尺的海岸山脈上，以每年8月至9月盛開的「金針花海」聞名。",recommended:true,url:"https://www.youtube.com/watch?v=nwzrxK_CpO0"},
+{name:"羅山遊憩區",short:"羅山",x:44.8,y:92,desc:"農村、瀑布與泥火山豆腐體驗，適合慢遊。",url:"https://travel.yam.com/article/131549"}
+];
+
+// === 海線景點 (台11線) — 座標精確貼合藍色路線，均勻分佈不重疊 ===
+// 藍色路線 SVG path: M620 118 C645 245 640 360 622 480 C608 592 610 690 592 790 C575 890 585 970 570 1065 C555 1165 560 1260 548 1365
+// 座標轉換: x% = svg_x/900*100,  y% = svg_y/1500*100
+// 共 22 個景點群組，從 y:8% 到 y:90% 均勻排列，每個景點精確落在藍色曲線上
+const coastGroups = [
+{key:"七星潭",short:"七星潭",x:70,y:10,items:[{name:"七星潭",desc:"花蓮最大卵石海灘，日出美景令人屏息，適合騎單車散步。",recommended:true,url:"https://gofunit.com/%E8%8A%B1%E8%93%AE%E4%B8%83%E6%98%9F%E6%BD%AD-%E6%9D%B1%E5%8F%B0%E7%81%A3%E7%A7%98%E5%A2%83%EF%BD%9C%E5%A0%86%E7%9F%B3%E9%A0%AD%E3%80%81%E7%9C%8B%E6%97%A5%E5%87%BA%E3%80%81%E8%B8%8F%E6%B5%AA/"}]},
+{key:"美侖大飯店",short:"美侖大飯店",x:70.0,y:14,items:[{name:"美侖大飯店",desc:"作為花蓮的第一家五星級飯店，全新改造的美侖大飯店以寬敞與舒適為設計理念，299間客房，10種不同房型，採用LOFT輕工業風格的簡約明亮設計，透過大型觀景窗讓您感受到溫暖的陽光。",url:"https://www.parktaipei.com/tw/index.html"}]},
+{key:"貨櫃屋星巴克",short:"貨櫃屋星巴克",x:71.0,y:22,items:[{name:"貨櫃屋星巴克",desc:"全台最美分店之一，貨櫃建築臨海而立，喝咖啡看海景超讚。",url:"https://www.funhualien.com.tw/sealine-roadtrip2019#海線貨櫃屋星巴克"}]},
+{key:"海崖谷",short:"海崖谷",x:69,y:30,items:[{name:"海崖谷",desc:"懸崖峭壁環抱的秘境谷地，聽濤看浪感受大自然的鬼斧神工。",url:"https://bunnyann.tw/bunnyann431/"}]},
+{key:"芭崎瞭望台",short:"芭崎瞭望台",x:69,y:38,items:[{name:"芭崎瞭望台",desc:"突出海崖的觀景台，360度環眺太平洋，風大時需注意安全。",recommended:true,url:"https://www.followbnb.com/bazai-lookout/"}]},
+{key:"大石鼻山",short:"大石鼻山",x:67,y:46,items:[{name:"大石鼻山",desc:"大石鼻山位於磯崎海濱遊憩區南端，為一突出海岸線的小山，又稱「龜庵山」。",recommended:true,url:"https://bobowin.blog/hualien-dashibi/"}]},
+{key:"親不知子海上古道",short:"親不知子",x:65.0,y:54,items:[{name:"親不知子海上古道",desc:"親不知子海上古道」由豐濱鄉公所2017建設完工後對外開放，以鋼骨結構與強化玻璃，沿著海上懸崖峭壁垂直興建完成約20公尺長的海上透明步道，近年已成為旅人蔚為風潮的花蓮旅遊打卡聖地。",recommended:true,url:"https://www.eastcoast-nsa.gov.tw/zh-tw/attractions/detail/267/"}]},
+{key:"石門遊憩區",short:"石門",x:64,y:62,items:[{name:"石門遊憩區",desc:"石門遊憩區」海岸礁岩區有碩大的海蝕洞，高5公尺、寬18公尺，形狀如門而得名，2016年好萊塢電影《沉默》也曾到此取景。其中靠海一側的洞口則因形狀貌似「march汽車」，被稱為「march洞」，連同外側的海蝕溝槽地景，如今成為目前遊客造訪必拍照打卡的熱門景點。",recommended:true,url:"https://fullfenblog.tw/march-cave/"}]},
+{key:"項鍊海岸工作室",short:"項鍊海岸",x:63,y:70,items:[{name:"項鍊海岸工作室",desc:"在項鍊海岸工作室無論是夢幻級月牙鞦韆，太平洋無敵海景與石梯坪海岸獨特地質景觀，都是超人氣的花蓮打卡畫面，另外項鍊海岸工作室菜單上還有好吃的原住民特色料理，看是想要把它當成IG景點或者是旅遊途中停留覓食的景觀餐廳都很合適。",url:"https://mimigo.tw/necklace-studio/"}]},
+{key:"月洞",short:"月洞",x:62.2,y:78,items:[{name:"月洞",desc:"位於台11線66公里處，有一個相當低調的遊憩區，叫做月洞，月洞這個名字聽起來蠻挺浪漫，原以為是洞穴長得像月亮，其實是洞裡的湖水會跟著月亮潮汐升降而來；在過去，阿美族人認為洞裡水高高低低，是因為月亮，也是因為海洋；他們常在這裡取水，所以又稱此地為「月亮之井」（阿美語為Tefon no Folad），這裡除了是他們的淨地，也是他們祈雨與祈福之地。",url:"https://vocus.cc/article/66e1496efd897800010f39f0"}]},
+{key:"石梯坪遊憩區",short:"石梯坪",x:60.9,y:88,items:[{name:"石梯坪遊憩區",desc:"石梯坪位在花蓮縣豐濱鄉石梯灣的南側，整個區域是一個面積極大的海岸階地，海蝕地形十分發達，海蝕平台、隆起珊瑚礁、海蝕溝、海蝕崖等比比皆是，尤其是壺穴景觀更是堪稱台灣第一。遊客可在此觀察潮間帶豐富生態或從事潛水活動，亦可選擇在設備完善的露營區夜宿。",recommended:true,url:"https://bobbytravel.tw/shitiping/"}]}
+];
+
+// === 地圖 SVG 底圖 ===
+const svgMap = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1500" role="img" aria-labelledby="title desc">
+  <title id="title">花蓮山線海線示意地圖</title>
+  <desc id="desc">以圖檔方式呈現花蓮縣輪廓、台9線山線、台11線海線與主要景點位置。</desc>
+  <defs>
+    <linearGradient id="sea" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#d9f0ff"/><stop offset="1" stop-color="#a8d8f0"/></linearGradient>
+    <linearGradient id="land" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#f7f0da"/><stop offset="1" stop-color="#e6f0d0"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1f2933" flood-opacity=".18"/></filter>
+  </defs>
+  <rect width="900" height="1500" fill="url(#sea)"/>
+  <path d="M0 0H900V1500H0Z" fill="#e8f5e3" opacity=".18"/>
+  <path d="M250 25 C335 38 430 34 520 52 C610 70 685 115 720 200 C755 285 725 360 706 438 C685 524 690 610 650 700 C612 786 620 875 590 960 C555 1058 555 1120 585 1205 C615 1295 578 1385 505 1458 C435 1517 350 1478 295 1390 C250 1320 205 1255 178 1166 C145 1058 155 950 130 850 C105 760 80 675 105 586 C132 492 155 405 150 315 C146 220 176 112 250 25Z" fill="url(#land)" stroke="#8aa07b" stroke-width="4" filter="url(#shadow)"/>
+  <path d="M160 80 C235 185 245 300 215 425 C190 535 195 650 225 760 C260 895 235 1045 290 1195 C325 1288 345 1368 415 1465" fill="none" stroke="#91b36f" stroke-width="54" stroke-linecap="round" opacity=".32"/>
+  <path d="M265 48 C350 210 318 395 350 565 C385 755 435 910 430 1080 C425 1240 400 1360 378 1448" fill="none" stroke="#d8eac8" stroke-width="70" stroke-linecap="round" opacity=".9"/>
+  <path d="M370 120 C348 232 340 338 332 448 C324 570 344 664 368 772 C398 902 425 1025 420 1150 C415 1270 405 1365 390 1450" fill="none" stroke="#2f7d32" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M370 120 C348 232 340 338 332 448 C324 570 344 664 368 772 C398 902 425 1025 420 1150 C415 1270 405 1365 390 1450" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+  <path d="M620 118 C645 245 640 360 622 480 C608 592 610 690 592 790 C575 890 585 970 570 1065 C555 1165 560 1260 548 1365" fill="none" stroke="#0877b9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M620 118 C645 245 640 360 622 480 C608 592 610 690 592 790 C575 890 585 970 570 1065 C555 1165 560 1260 548 1365" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+  <path d="M706 438 C675 535 690 620 650 700 C612 786 620 875 590 960 C555 1058 555 1120 585 1205 C615 1295 578 1385 505 1458" fill="none" stroke="#5aa9d6" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+  <text x="40" y="62" font-family="Microsoft JhengHei,Noto Sans TC,sans-serif" font-size="30" font-weight="700" fill="#1f2933">花蓮縣山線海線景點示意地圖</text>
+  <text x="43" y="102" font-family="Microsoft JhengHei,Noto Sans TC,sans-serif" font-size="18" fill="#52606d">綠線：台9線花東縱谷公路 ｜ 藍線：台11線花東海岸公路</text>
+  <text x="680" y="720" transform="rotate(90 680 720)" font-family="Microsoft JhengHei,Noto Sans TC,sans-serif" font-size="28" font-weight="700" fill="#327da8" opacity=".55">太平洋</text>
+  <text x="205" y="745" transform="rotate(78 205 745)" font-family="Microsoft JhengHei,Noto Sans TC,sans-serif" font-size="24" font-weight="700" fill="#668b45" opacity=".6">中央山脈</text>
+  <text x="312" y="95" font-family="Microsoft JhengHei,Noto Sans TC,sans-serif" font-size="18" font-weight="700" fill="#2f7d32">台9 山線</text>
+  <text x="650" y="128" font-family="Microsoft JhengHei,Noto Sans TC,sans-serif" font-size="18" font-weight="700" fill="#0877b9">台11 海線</text>
+  <g font-family="Microsoft JhengHei,Noto Sans TC,sans-serif" font-size="16" fill="#455a64" opacity=".9">
+    <text x="430" y="155">花蓮市</text>
+    <text x="375" y="480">壽豐</text>
+    <text x="392" y="685">鳳林</text>
+    <text x="425" y="825">光復</text>
+    <text x="458" y="1018">瑞穗</text>
+    <text x="450" y="1198">玉里</text>
+    <text x="422" y="1400">富里</text>
+    <text x="625" y="690">豐濱</text>
+  </g>
+</svg>`;
+
+// === 路由過濾狀態 ===
+let currentRoute = "mountain"; // "all" | "mountain" | "coast"
+
+function setRoute(route) {
+  currentRoute = route;
+  // 控制 marker 顯示/隱藏
+  document.querySelectorAll(".marker").forEach(m => {
+    if (route === "all") {
+      m.style.display = "";
+    } else {
+      m.style.display = m.classList.contains(route) ? "" : "none";
+    }
+  });
+  // 控制清單顯示/隱藏
+  document.getElementById("mountainList").style.display =
+    (route === "all" || route === "mountain") ? "" : "none";
+  document.getElementById("coastList").style.display =
+    (route === "all" || route === "coast") ? "" : "none";
+  // 更新按鈕樣式
+  document.querySelectorAll(".route-filter-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.route === route);
+  });
+}
+
+// 添加路由切換按鈕
+const actionsDiv = document.querySelector(".actions");
+const filterHTML = `
+  <button class="btn route-filter-btn" data-route="all" id="btnAll">顯示全部</button>
+  <button class="btn route-filter-btn active" data-route="mountain" id="btnMountain">只看台9線</button>
+  <button class="btn route-filter-btn" data-route="coast" id="btnCoast">只看台11線</button>
+`;
+actionsDiv.insertAdjacentHTML("beforeend", filterHTML);
+
+document.getElementById("btnAll").addEventListener("click", () => setRoute("all"));
+document.getElementById("btnMountain").addEventListener("click", () => setRoute("mountain"));
+document.getElementById("btnCoast").addEventListener("click", () => setRoute("coast"));
+
+// === 渲染 ===
+const wrap = document.getElementById("mapWrap");
+const callout = document.getElementById("callout");
+const markerByName = new Map();
+const itemByName = new Map();
+
+// 初始顯示全部（setRoute 放在渲染完成後呼叫）
+
+// 設定 SVG 底圖
+const mapImg = document.getElementById("mapImg");
+const blob = new Blob([svgMap], {type: "image/svg+xml;charset=utf-8"});
+const url = URL.createObjectURL(blob);
+mapImg.src = url;
+
+// 下載 SVG 按鈕（已移除，保留以免報錯）
+// document.getElementById("downloadSvg").href = url;
+
+function addMountainPlaces(places) {
+  const list = document.getElementById("mountainList");
+  places.forEach((p, i) => {
+    const marker = document.createElement("button");
+    marker.type = "button";
+    const side = i % 2 === 0 ? "left" : "right";
+    marker.className = `marker mountain ${side}`;
+    marker.style.setProperty("--x", p.x);
+    marker.style.setProperty("--y", p.y);
+    marker.innerHTML = `<span class="num">${i+1}</span><span class="label">${p.short || p.name}</span>`;
+    marker.title = p.name;
+    marker.addEventListener("click", () => selectPlace(p, "mountain", "山線 台9線", false));
+    wrap.appendChild(marker);
+    markerByName.set(p.name, marker);
+
+    const item = document.createElement("li");
+    item.className = "place mountain";
+    item.innerHTML = `<b>${i+1}. ${p.name}${p.recommended?' <span style="color:red">(推薦)</span>':''}</b><span>${p.desc}</span>`;
+    item.addEventListener("click", () => selectPlace(p, "mountain", "山線 台9線", false));
+    list.appendChild(item);
+    itemByName.set(p.name, item);
+  });
+}
+
+function addCoastGroups(groups) {
+  const list = document.getElementById("coastList");
+  groups.forEach((g, i) => {
+    const marker = document.createElement("button");
+    marker.type = "button";
+    const side = i % 2 === 0 ? "right" : "left";
+    marker.className = `marker coast ${side}`;
+    marker.style.setProperty("--x", g.x);
+    marker.style.setProperty("--y", g.y);
+    const count = g.items.length;
+    const badge = count > 1 ? `<span style="font-size:9px;background:rgba(255,255,255,.3);border-radius:999px;padding:1px 4px;margin-left:2px">${count}合</span>` : "";
+    marker.innerHTML = `<span class="num">${i+1}</span><span class="label">${g.short}${badge}</span>`;
+    marker.title = g.items.map(it=>it.name).join("、");
+    marker.addEventListener("click", () => selectPlace(g, "coast", "海線 台11線", true));
+    wrap.appendChild(marker);
+    markerByName.set(g.key, marker);
+
+    const item = document.createElement("li");
+    item.className = "place coast";
+    let descHtml = g.items.map((it,j) => `<span>${j+1}. ${it.name}：${it.desc}</span>`).join("");
+    if (count > 1) {
+      descHtml = `<div class="merge-group"><div class="merge-title">📍 ${count} 個景點共用此位置</div>${g.items.map(it=>`<div class="merge-item">${it.name}：${it.desc}</div>`).join("")}</div>`;
+    }
+    item.innerHTML = `<b>${i+1}. ${g.key}${g.items.some(it=>it.recommended)?' <span style="color:red">(推薦)</span>':''}</b>${descHtml}`;
+    item.addEventListener("click", () => selectPlace(g, "coast", "海線 台11線", true));
+    list.appendChild(item);
+    itemByName.set(g.key, item);
+  });
+}
+
+function closeCallout() {
+  document.querySelectorAll(".marker.active,.place.active").forEach(el => el.classList.remove("active"));
+  callout.className = "callout";
+  callout.innerHTML = "";
+}
+
+function selectPlace(data, cls, route, isMerge) {
+  // 點擊景點時自動切換到對應路線
+  setRoute(cls);
+  closeCallout();
+  const name = isMerge ? data.key : data.name;
+  const marker = markerByName.get(name);
+  if (marker) {
+    marker.classList.add("active");
+    marker.style.display = "";  // 確保被選取的 marker 顯示
+  }
+  itemByName.get(name)?.classList.add("active");
+  callout.className = "callout show";
+
+  let descHtml = "";
+  let linkHtml = "";
+  if (isMerge) {
+    descHtml = data.items.map(it => `<p><strong>${it.name}</strong>：${it.desc}</p>`).join("");
+    // 取第一個有 url 的項目作為參考連結
+    const firstUrl = data.items.find(it => it.url)?.url;
+    if (firstUrl) {
+      linkHtml = `<a href="${firstUrl}" target="_blank" rel="noopener">🔗 參考連結</a>`;
+    }
+  } else {
+    descHtml = `<p>${data.desc}</p>`;
+    if (data.url) {
+      linkHtml = `<a href="${data.url}" target="_blank" rel="noopener">🔗 參考連結</a>`;
+    }
+  }
+
+  callout.innerHTML = `
+    <button class="callout-close" type="button" aria-label="關閉">×</button>
+    <div class="callout-title">${name}</div>
+    <span class="tag ${cls}">${route}</span>
+    ${descHtml}
+    ${linkHtml ? linkHtml + ' ' : ''}<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(name + ' 花蓮')}">Google Maps 搜尋</a>
+  `;
+  callout.querySelector(".callout-close").addEventListener("click", closeCallout);
+
+  // 手機端：點擊景點後往下滾動至地圖區域
+  if (window.innerWidth <= 920) {
+    const stage = document.querySelector(".stage");
+    if (stage) stage.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+addMountainPlaces(mountainPlaces);
+addCoastGroups(coastGroups);
+
+// 初始狀態：手機端顯示景點清單，桌面端隱藏
+const isMobile = window.innerWidth <= 920;
+document.getElementById("mountainList").style.display = isMobile ? "" : "none";
+document.getElementById("coastList").style.display = isMobile ? "" : "none";
+
+// 渲染完成後設定預設只看台9線
+setRoute("mountain");
+</script>
+</body>
+</html>
